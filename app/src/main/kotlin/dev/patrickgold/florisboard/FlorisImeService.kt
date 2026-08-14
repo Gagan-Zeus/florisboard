@@ -314,6 +314,7 @@ class FlorisImeService : LifecycleInputMethodService() {
         @Suppress("DEPRECATION") // We do not retrieve the wallpaper but only listen to changes
         registerReceiver(wallpaperChangeReceiver, IntentFilter(Intent.ACTION_WALLPAPER_CHANGED))
 
+        zevLinkClipboardBridge.attachTransport(dev.patrickgold.florisboard.zevlink.ZevLinkBroadcastTransport(this))
         zevLinkClipboardBridge.start()
     }
 
