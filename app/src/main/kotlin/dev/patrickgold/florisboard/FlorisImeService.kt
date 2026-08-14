@@ -55,6 +55,7 @@ import dev.patrickgold.florisboard.ime.nlp.NlpInlineAutofill
 import dev.patrickgold.florisboard.ime.theme.WallpaperChangeReceiver
 import dev.patrickgold.florisboard.ime.window.ImeRootView
 import dev.patrickgold.florisboard.ime.window.ImeWindowController
+import dev.patrickgold.florisboard.zevlink.ZevLinkClipboardBridge
 import dev.patrickgold.florisboard.lib.devtools.LogTopic
 import dev.patrickgold.florisboard.lib.devtools.flogError
 import dev.patrickgold.florisboard.lib.devtools.flogInfo
@@ -271,6 +272,7 @@ class FlorisImeService : LifecycleInputMethodService() {
         private set
 
     private val wallpaperChangeReceiver = WallpaperChangeReceiver()
+    private val zevLinkClipboardBridge by lazy { ZevLinkClipboardBridge(this) }
 
     init {
         setTheme(R.style.FlorisImeTheme)
@@ -311,6 +313,8 @@ class FlorisImeService : LifecycleInputMethodService() {
 
         @Suppress("DEPRECATION") // We do not retrieve the wallpaper but only listen to changes
         registerReceiver(wallpaperChangeReceiver, IntentFilter(Intent.ACTION_WALLPAPER_CHANGED))
+
+        zevLinkClipboardBridge.start()
     }
 
     override fun onCreateInputView(): View? {
@@ -352,6 +356,7 @@ class FlorisImeService : LifecycleInputMethodService() {
     }
 
     override fun onDestroy() {
+        zevLinkClipboardBridge.stop()
         super.onDestroy()
         unregisterReceiver(wallpaperChangeReceiver)
         FlorisImeServiceReference = WeakReference(null)
@@ -424,6 +429,7 @@ class FlorisImeService : LifecycleInputMethodService() {
         if (windowController.onWindowShown()) {
             flogInfo(LogTopic.IMS_EVENTS)
             inputFeedbackController.updateSystemPrefsState()
+            zevLinkClipboardBridge.setImeWindowVisible(true)
         } else {
             flogWarning(LogTopic.IMS_EVENTS) { "Ignoring (is already shown)" }
         }
@@ -438,6 +444,7 @@ class FlorisImeService : LifecycleInputMethodService() {
                 activeState.isActionsOverflowVisible = false
                 activeState.isActionsEditorVisible = false
             }
+            zevLinkClipboardBridge.setImeWindowVisible(false)
         } else {
             flogWarning(LogTopic.IMS_EVENTS) { "Ignoring (is already hidden)" }
         }

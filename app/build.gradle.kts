@@ -67,7 +67,7 @@ configure<ApplicationExtension> {
     }
 
     defaultConfig {
-        applicationId = "dev.patrickgold.florisboard"
+        applicationId = "com.zevlink.keyboard"
         minSdk = projectMinSdk.toInt()
         targetSdk = projectTargetSdk.toInt()
         versionCode = projectVersionCode.toInt()
@@ -100,10 +100,24 @@ configure<ApplicationExtension> {
         compose = true
     }
 
+    signingConfigs {
+        create("zevclipRelease") {
+            val envFile = rootProject.file("../build/signing/zevclip-android-release.env")
+            if (envFile.exists()) {
+                val envMap = envFile.readLines()
+                    .filter { it.contains("=") && !it.trimStart().startsWith("#") }
+                    .associate { it.substringBefore("=").trim() to it.substringAfter("=").trim() }
+                storeFile = rootProject.file("../build/signing/zevclip-android-release.jks")
+                storePassword = envMap["ZEVCLIP_RELEASE_STORE_PASSWORD"] ?: ""
+                keyAlias = envMap["ZEVCLIP_RELEASE_ALIAS"] ?: ""
+                keyPassword = envMap["ZEVCLIP_RELEASE_KEY_PASSWORD"] ?: ""
+            }
+        }
+    }
+
     buildTypes {
         named("debug") {
-            applicationIdSuffix = ".debug"
-            versionNameSuffix = "-debug+${getGitCommitHash(short = true).get()}"
+            signingConfig = signingConfigs.getByName("zevclipRelease")
 
             isDebuggable = true
             isJniDebuggable = false
